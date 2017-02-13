@@ -3,10 +3,10 @@ Implements the Barnes–Hut algorithim to handle the gravitional interaction of 
 Includes a renderer that produces high quailty PPM images of each step of the simulation. These can be compiled into animations using software like ffmpeg. [Example](https://goo.gl/uUEgHl)
 
 Initialized as a uniform disk
-![alt tag](http://i.imgur.com/KarubZw.png)
+![alt tag](http://i.imgur.com/KarubZw.png?1)
 
 Higher disk mass
-![alt tag](http://i.imgur.com/om7hTpE.png)
+![alt tag](http://i.imgur.com/om7hTpE.png?1)
 
 "Hot" Disk
 ![alt tag](http://i.imgur.com/UVLfwuN.png)

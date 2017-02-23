@@ -8,10 +8,10 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
-#define NULL 0
+//#define NULL 0
 
-#define WIDTH	480
-#define HEIGHT	480
+#define WIDTH	1024
+#define HEIGHT	1024
 #define NUM_BODIES (1024*64)
 #define PI      3.14159265358979323846
 #define TO_METERS 1.496e11 // Meters in an AU
@@ -30,7 +30,7 @@
 #define RENDER_SCALE 1.05 //1.1
 #define MAX_VEL_COLOR 40000.0  // Both in km/s
 #define MIN_VEL_COLOR 14000.0
-#define PARTICLE_BRIGHTNESS 0.14//0.03 for 256/512k, 0.4 for 16k
+#define PARTICLE_BRIGHTNESS 0.04//0.03 for 256/512k, 0.4 for 16k
 #define TIME_STEP (3*32*1024) //(1*128*1024)   Seconds
 #define STEP_COUNT 16000
 #define RENDER_INTERVAL 1 //1

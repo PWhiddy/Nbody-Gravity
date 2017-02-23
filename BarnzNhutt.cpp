@@ -280,7 +280,7 @@ void colorDot(double x, double y, double vMag, char* image)
 			double yP = floor(toPixelSpace(y, HEIGHT));
 			double cFactor = PARTICLE_BRIGHTNESS /
 					(pow(pow(xP+i-toPixelSpace(x, WIDTH),2.0)
-				+ pow(yP+j-toPixelSpace(y, HEIGHT),2.0),/*1.25*/1.333)+1.0);
+				+ pow(yP+j-toPixelSpace(y, HEIGHT),2.0),/*1.25*/0.45)+1.0);
 			colorAt(int(xP+i),int(yP+j),c, cFactor, image);
 		}
 	}

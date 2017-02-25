@@ -1,1 +1,1 @@
-ffmpeg -framerate 30 -i Step%05d.ppm result.mp4
+ffmpeg -framerate 45 -i Step%05d.ppm result.mp4

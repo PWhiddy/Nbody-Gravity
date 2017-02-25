@@ -7,32 +7,34 @@
 #include <fstream>
 #include <stdlib.h>
 #include <random>
+#include <omp.h>
 #include "Bhtree.cpp"
 
 void initializeBodies(struct body* bods);
-void runSimulation(struct body* b, char* image);
+void runSimulation(struct body* b, char* image, double* hdImage);
 void interactBodies(struct body* b);
 void singleInteraction(struct body* a, struct body* b);
 double magnitude(vec3 v);
 void updateBodies(struct body* b);
-void createFrame(char* image, struct body* b, int step);
+void createFrame(char* image, double* hdImage, struct body* b, int step);
 double toPixelSpace(double p, int size);
-void renderClear(char* image);
-void renderBodies(struct body* b, char* image);
-void colorDot(double x, double y, double vMag, char* image);
-void colorAt(int x, int y, struct color c, double f, char* image);
+void renderClear(char* image, double* hdImage);
+void renderBodies(struct body* b, double* hdImage);
+void colorDot(double x, double y, double vMag, double* hdImage);
+void colorAt(int x, int y, struct color c, double f, double* hdImage);
 unsigned char colorDepth(unsigned char x, unsigned char p, double f);
 double clamp(double x);
-void writeRender(char* data, int step);
+void writeRender(char* data, double* hdImage, int step);
 
 int main()
 {
 	std::cout << SYSTEM_THICKNESS << "AU thick disk\n";;
 	char *image = new char[WIDTH*HEIGHT*3];
+	double *hdImage = new double[WIDTH*HEIGHT*3];
 	struct body *bodies = new struct body[NUM_BODIES];
 
 	initializeBodies(bodies);
-	runSimulation(bodies, image);
+	runSimulation(bodies, image, hdImage);
 	std::cout << "\nwe made it\n";
 	delete[] bodies;
 	delete[] image;
@@ -79,7 +81,7 @@ void initializeBodies(struct body* bods)
 	for (int index=1; index<NUM_BODIES; index++)
 	{
 		angle = randAngle(gen);
-		radius = randRadius(gen);
+		radius = sqrt(SYSTEM_SIZE)*sqrt(randRadius(gen));
 		velocity = sqrt((G*(SOLAR_MASS+((radius-INNER_BOUND)/SYSTEM_SIZE)*EXTRA_MASS*SOLAR_MASS))
 					  	  	  	  	  / (radius*TO_METERS));
 		current = &bods[index];
@@ -97,9 +99,9 @@ void initializeBodies(struct body* bods)
 			  << "\n______________________________\n";
 }
 
-void runSimulation(struct body* b, char* image)
+void runSimulation(struct body* b, char* image, double* hdImage)
 {
-	createFrame(image, b, 1);
+	createFrame(image, hdImage, b, 1);
 	for (int step=1; step<STEP_COUNT; step++)
 	{
 		std::cout << "\nBeginning timestep: " << step;
@@ -107,7 +109,7 @@ void runSimulation(struct body* b, char* image)
 
 		if (step%RENDER_INTERVAL==0)
 		{
-			createFrame(image, b, step + 1);
+			createFrame(image, hdImage, b, step + 1);
 		}
 		if (DEBUG_INFO) {std::cout << "\n-------Done------- timestep: "
 			       << step << "\n" << std::flush;}
@@ -133,6 +135,7 @@ void interactBodies(struct body* bods)
 	center->z = 0.1374; /// Does this help?
 	Octant *root = new Octant(center, 4.3*SYSTEM_SIZE);
 	Bhtree *tree = new Bhtree(root);
+
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
 		if (root->contains(bods[bIndex].position))
@@ -144,6 +147,7 @@ void interactBodies(struct body* bods)
 	if (DEBUG_INFO) {std::cout << "\nCalculating particle interactions..." << std::flush;}
 
 	// loop through interactions
+	#pragma omp parallel for
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
 		if (root->contains(bods[bIndex].position))
@@ -218,27 +222,28 @@ void updateBodies(struct body* bods)
 	}
 }
 
-void createFrame(char* image, struct body* b, int step)
+void createFrame(char* image, double* hdImage, struct body* b, int step)
 {
 	std::cout << "\nWriting frame " << step;
 	if (DEBUG_INFO)	{std::cout << "\nClearing Pixels..." << std::flush;}
-	renderClear(image);
+	renderClear(image, hdImage);
 	if (DEBUG_INFO) {std::cout << "\nRendering Particles..." << std::flush;}
-	renderBodies(b, image);
+	renderBodies(b, hdImage);
 	if (DEBUG_INFO) {std::cout << "\nWriting frame to file..." << std::flush;}
-	writeRender(image, step);
+	writeRender(image, hdImage, step);
 }
 
-void renderClear(char* image)
+void renderClear(char* image, double* hdImage)
 {
 	for (int i=0; i<WIDTH*HEIGHT*3; i++)
 	{
 	//	char* current = image + i;
 		image[i] = 0; //char(image[i]/1.2);
+		hdImage[i] = 0.0;
 	}
 }
 
-void renderBodies(struct body* b, char* image)
+void renderBodies(struct body* b, double* hdImage)
 {
 	/// ORTHOGONAL PROJECTION
 	for(int index=0; index<NUM_BODIES; index++)
@@ -252,7 +257,7 @@ void renderBodies(struct body* b, char* image)
 			y>DOT_SIZE && y<HEIGHT-DOT_SIZE)
 		{
 			double vMag = magnitude(current->velocity);
-			colorDot(current->position.x, current->position.y, vMag, image);
+			colorDot(current->position.x, current->position.y, vMag, hdImage);
 		}
 	}
 }
@@ -262,16 +267,16 @@ double toPixelSpace(double p, int size)
 	return (size/2.0)*(1.0+p/(SYSTEM_SIZE*RENDER_SCALE));
 }
 
-void colorDot(double x, double y, double vMag, char* image)
+void colorDot(double x, double y, double vMag, double* hdImage)
 {
 	const double velocityMax = MAX_VEL_COLOR; //35000
 	const double velocityMin = sqrt(0.8*(G*(SOLAR_MASS+EXTRA_MASS*SOLAR_MASS))/
 			(SYSTEM_SIZE*TO_METERS)); //MIN_VEL_COLOR;
 	const double vPortion = sqrt((vMag-velocityMin) / velocityMax);
 	color c;
-	c.r = int(255*clamp(4*(vPortion-0.333)));
-	c.g = int(255*clamp(fmin(4*vPortion,4.0*(1.0-vPortion))));
-	c.b = int(255*clamp(4*(0.5-vPortion)));
+	c.r = clamp(4*(vPortion-0.333));
+	c.g = clamp(fmin(4*vPortion,4.0*(1.0-vPortion)));
+	c.b = clamp(4*(0.5-vPortion));
 	for (int i=-DOT_SIZE/2; i<DOT_SIZE/2; i++)
 	{
 		for (int j=-DOT_SIZE/2; j<DOT_SIZE/2; j++)
@@ -279,20 +284,20 @@ void colorDot(double x, double y, double vMag, char* image)
 			double xP = floor(toPixelSpace(x, WIDTH));
 			double yP = floor(toPixelSpace(y, HEIGHT));
 			double cFactor = PARTICLE_BRIGHTNESS /
-					(pow(pow(xP+i-toPixelSpace(x, WIDTH),2.0)
-				+ pow(yP+j-toPixelSpace(y, HEIGHT),2.0),/*1.25*/0.45)+1.0);
-			colorAt(int(xP+i),int(yP+j),c, cFactor, image);
+					(pow(exp(pow(3.0*(xP+i-toPixelSpace(x, WIDTH)),2.0))
+				+ exp(pow(3.0*(yP+j-toPixelSpace(y, HEIGHT)),2.0)),/*1.25*/0.75)+1.0);
+			colorAt(int(xP+i),int(yP+j),c, cFactor, hdImage);
 		}
 	}
 
 }
 
-void colorAt(int x, int y, struct color c, double f, char* image)
+void colorAt(int x, int y, struct color c, double f, double* hdImage)
 {
 	int pix = 3*(x+WIDTH*y);
-	image[pix+0] = colorDepth(c.r, image[pix+0], f);
-	image[pix+1] = colorDepth(c.g, image[pix+1], f);
-	image[pix+2] = colorDepth(c.b, image[pix+2], f);
+	hdImage[pix+0] += c.r*f;//colorDepth(c.r, image[pix+0], f);
+	hdImage[pix+1] += c.g*f;//colorDepth(c.g, image[pix+1], f);
+	hdImage[pix+2] += c.b*f;//colorDepth(c.b, image[pix+2], f);
 }
 
 unsigned char colorDepth(unsigned char x, unsigned char p, double f)
@@ -307,8 +312,14 @@ double clamp(double x)
 	return fmax(fmin(x,1.0),0.0);
 }
 
-void writeRender(char* data, int step)
+void writeRender(char* data, double* hdImage, int step)
 {
+	
+	for (int i=0; i<WIDTH*HEIGHT*3; i++)
+	{
+		data[i] = int(255.0*clamp(hdImage[i]));
+	}
+
 	int frame = step/RENDER_INTERVAL + 1;//RENDER_INTERVAL;
 	std::string name = "Step";
 	for (int i=0; i<4-floor(log(frame)/log(10)); i++)

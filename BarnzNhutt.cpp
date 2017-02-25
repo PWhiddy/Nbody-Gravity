@@ -284,8 +284,10 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 			double xP = floor(toPixelSpace(x, WIDTH));
 			double yP = floor(toPixelSpace(y, HEIGHT));
 			double cFactor = PARTICLE_BRIGHTNESS /
-					(pow(exp(pow(3.0*(xP+i-toPixelSpace(x, WIDTH)),2.0))
-				+ exp(pow(3.0*(yP+j-toPixelSpace(y, HEIGHT)),2.0)),/*1.25*/0.75)+1.0);
+					(pow(exp(pow(PARTICLE_SHARPNESS*
+					(xP+i-toPixelSpace(x, WIDTH)),2.0))
+				       + exp(pow(PARTICLE_SHARPNESS*
+					(yP+j-toPixelSpace(y, HEIGHT)),2.0)),/*1.25*/0.75)+1.0);
 			colorAt(int(xP+i),int(yP+j),c, cFactor, hdImage);
 		}
 	}
@@ -321,8 +323,10 @@ void writeRender(char* data, double* hdImage, int step)
 	}
 
 	int frame = step/RENDER_INTERVAL + 1;//RENDER_INTERVAL;
-	std::string name = "Step";
-	for (int i=0; i<4-floor(log(frame)/log(10)); i++)
+	std::string name = "images/Step"; 
+	int i = 0;
+	if (frame == 1000) i++; // Evil hack to avoid extra 0 at 1000
+	for (i; i<4-floor(log(frame)/log(10)); i++)
 	{
 		name.append("0");
 	}

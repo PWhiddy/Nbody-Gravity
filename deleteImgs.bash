@@ -1,1 +1,1 @@
-rm *.ppm
+rm images/*.ppm

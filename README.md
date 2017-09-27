@@ -5,7 +5,8 @@ Includes a renderer that produces high quailty PPM images of the simulation. The
 # Setup
 Use build.bash to create the program. That's it! Executing "run" will immediately start simulating and rendering to the images folder until canceled or frame limit is reached. Note: This may consume significant storage space.
 
-Initial conditions parameters can be modified in the Constants.h file, and are baked into the program so build must be run again after making changes. 
+Initial conditions parameters can be modified in the Constants.h file, and are baked into the program so build must be run again after making changes.  
+
 If you have ffmpeg you can use createVideo.bash to generate a video from the images.
 
 # Images

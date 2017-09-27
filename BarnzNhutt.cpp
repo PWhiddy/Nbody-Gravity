@@ -83,7 +83,7 @@ void initializeBodies(struct body* bods)
 		angle = randAngle(gen);
 		radius = sqrt(SYSTEM_SIZE)*sqrt(randRadius(gen));
 		velocity = pow(((G*(SOLAR_MASS+((radius-INNER_BOUND)/SYSTEM_SIZE)*EXTRA_MASS*SOLAR_MASS))
-					  	  	  	  	  / (radius*TO_METERS)), 0.6666);
+					  	  	  	  	  / (radius*TO_METERS)), 0.5);
 		current = &bods[index];
 		current->position.x =  radius*cos(angle);
 		current->position.y =  radius*sin(angle);

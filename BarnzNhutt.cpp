@@ -82,8 +82,8 @@ void initializeBodies(struct body* bods)
 	{
 		angle = randAngle(gen);
 		radius = sqrt(SYSTEM_SIZE)*sqrt(randRadius(gen));
-		velocity = sqrt((G*(SOLAR_MASS+((radius-INNER_BOUND)/SYSTEM_SIZE)*EXTRA_MASS*SOLAR_MASS))
-					  	  	  	  	  / (radius*TO_METERS));
+		velocity = pow(((G*(SOLAR_MASS+((radius-INNER_BOUND)/SYSTEM_SIZE)*EXTRA_MASS*SOLAR_MASS))
+					  	  	  	  	  / (radius*TO_METERS)), 0.6666);
 		current = &bods[index];
 		current->position.x =  radius*cos(angle);
 		current->position.y =  radius*sin(angle);
@@ -133,7 +133,7 @@ void interactBodies(struct body* bods)
 	center->x = 0;
 	center->y = 0;
 	center->z = 0.1374; /// Does this help?
-	Octant *root = new Octant(center, 4.3*SYSTEM_SIZE);
+	Octant *root = new Octant(center, 60*SYSTEM_SIZE);
 	Bhtree *tree = new Bhtree(root);
 
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)

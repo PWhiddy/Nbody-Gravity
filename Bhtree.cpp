@@ -178,17 +178,16 @@ public:
 
 	void singleInteract(struct body* target, struct body* other, bool singlePart)
 	{
-		vec3 *posDiff = new struct vec3;
-		posDiff->x = (target->position.x-other->position.x)*TO_METERS;
-		posDiff->y = (target->position.y-other->position.y)*TO_METERS;
-		posDiff->z = (target->position.z-other->position.z)*TO_METERS;
-		double dist = magnitude(posDiff);
+		vec3 posDiff;
+		posDiff.x = (target->position.x-other->position.x)*TO_METERS;
+		posDiff.y = (target->position.y-other->position.y)*TO_METERS;
+		posDiff.z = (target->position.z-other->position.z)*TO_METERS;
+		double dist = magnitude(&posDiff);
 		double F = TIME_STEP*(G*target->mass*other->mass) / ((dist*dist + SOFTENING*SOFTENING) * dist);
 
-		target->accel.x -= F*posDiff->x/target->mass;
-		target->accel.y -= F*posDiff->y/target->mass;
-		target->accel.z -= F*posDiff->z/target->mass;
-		delete posDiff;
+		target->accel.x -= F*posDiff.x/target->mass;
+		target->accel.y -= F*posDiff.y/target->mass;
+		target->accel.z -= F*posDiff.z/target->mass;
 		
 		//Friction
 	#if ENABLE_FRICTION
@@ -204,6 +203,8 @@ public:
 				target->accel.z += friction*(other->velocity.z-target->velocity.z)/2;
 			}
 		}
+    #else
+        (void)singlePart;
 	#endif		
 
 

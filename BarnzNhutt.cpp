@@ -141,15 +141,15 @@ void interactBodies(struct body* bods)
 	if (DEBUG_INFO) gettimeofday(&tstart, nullptr);
 
 	// Build tree
-	Octant *root = new Octant(0, /// center x
+	Octant&& proot = Octant(0, /// center x
 	                          0, /// center y
 	                          0.1374, /// center z Does this help?
 	                          60*SYSTEM_SIZE);
-	Bhtree *tree = new Bhtree(root);
+	Bhtree *tree = new Bhtree(proot);
 
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
-		if (root->contains(bods[bIndex].position))
+		if (tree->octant().contains(bods[bIndex].position))
 		{
 			tree->insert(&bods[bIndex]);
 		}
@@ -163,7 +163,7 @@ void interactBodies(struct body* bods)
 	#pragma omp parallel for
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
-		if (root->contains(bods[bIndex].position))
+		if (tree->octant().contains(bods[bIndex].position))
 		{
 			tree->interactInTree(&bods[bIndex]);
 		}

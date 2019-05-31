@@ -13,7 +13,7 @@ class Bhtree
 private:
 	body *myBod;
 	body *toDelete;
-	Octant *octy;
+	Octant octy;
 	Bhtree *UNW;
 	Bhtree *UNE;
 	Bhtree *USW;
@@ -24,11 +24,11 @@ private:
 	Bhtree *DSE;
 
 public:
-	Bhtree(Octant* o)
+
+	Bhtree(Octant&& o): octy(std::move(o))
 	{
 		myBod = NULL;
 		toDelete = NULL;
-		octy = o;
 		UNW = NULL;
 		UNE = NULL;
 		USW = NULL;
@@ -38,6 +38,22 @@ public:
 		DSW = NULL;
 		DSE = NULL;
 	}
+
+	Bhtree(const Octant& o): octy(o)
+	{
+		myBod = NULL;
+		toDelete = NULL;
+		UNW = NULL;
+		UNE = NULL;
+		USW = NULL;
+		USE = NULL;
+		DNW = NULL;
+		DNE = NULL;
+		DSW = NULL;
+		DSE = NULL;
+	}
+	
+	const Octant& octant () const { return octy; }
 
 	~Bhtree()
 	{
@@ -51,7 +67,6 @@ public:
 		if (DSW!=NULL) delete DSW; //DSW->~Bhtree();
 		if (DSE!=NULL) delete DSE; //DSE->~Bhtree();
 		if (toDelete!=NULL) delete toDelete;
-		delete octy; //octy->~Octant();
 	//	if (!isExternal() && myBod!= NULL && myBod->velocity.x==0.0) delete myBod;
 	//	delete myBod;
 	}
@@ -92,65 +107,50 @@ public:
 			} else {
 				updatedBod = myBod;
 			}
-			Octant *unw = octy->mUNW();
-			if (unw->contains(updatedBod->position))
+			Octant&& unw = octy.mUNW();
+			if (unw.contains(updatedBod->position))
 			{
 				if (UNW==NULL) { UNW = new Bhtree(unw); }
-				else { delete unw; }
 				UNW->insert(updatedBod);
 			} else {
-				delete unw;
-				Octant *une = octy->mUNE();
-				if (une->contains(updatedBod->position))
+				Octant&& une = octy.mUNE();
+				if (une.contains(updatedBod->position))
 				{
 					if (UNE==NULL) { UNE = new Bhtree(une); }
-					else { delete une; }
 					UNE->insert(updatedBod);
 				} else {
-					delete une;
-					Octant *usw = octy->mUSW();
-					if (usw->contains(updatedBod->position))
+					Octant&& usw = octy.mUSW();
+					if (usw.contains(updatedBod->position))
 					{
 						if (USW==NULL) { USW = new Bhtree(usw); }
-						else { delete usw; }
 						USW->insert(updatedBod);
 					} else {
-						delete usw;
-						Octant *use = octy->mUSE();
-						if (use->contains(updatedBod->position))
+						Octant&& use = octy.mUSE();
+						if (use.contains(updatedBod->position))
 						{
 							if (USE==NULL) { USE = new Bhtree(use); }
-							else { delete use; }
 							USE->insert(updatedBod);
 						} else {
-							delete use;
-							Octant *dnw = octy->mDNW();
-							if (dnw->contains(updatedBod->position))
+							Octant&& dnw = octy.mDNW();
+							if (dnw.contains(updatedBod->position))
 							{
 								if (DNW==NULL) { DNW = new Bhtree(dnw); }
-								else { delete dnw; }
 								DNW->insert(updatedBod);
 							} else {
-								delete dnw;
-								Octant *dne = octy->mDNE();
-								if (dne->contains(updatedBod->position))
+								Octant&& dne = octy.mDNE();
+								if (dne.contains(updatedBod->position))
 								{
 									if (DNE==NULL) { DNE = new Bhtree(dne); }
-									else { delete dne; }
 									DNE->insert(updatedBod);
 								} else {
-									delete dne;
-									Octant *dsw = octy->mDSW();
-									if (dsw->contains(updatedBod->position))
+									Octant&& dsw = octy.mDSW();
+									if (dsw.contains(updatedBod->position))
 									{
 										if (DSW==NULL) { DSW = new Bhtree(dsw); }
-										else { delete dsw; }
 										DSW->insert(updatedBod);
 									} else {
-										delete dsw;
-										Octant *dse = octy->mDSE();
+										Octant&& dse = octy.mDSE();
 										if (DSE==NULL) { DSE = new Bhtree(dse); }
-										else { delete dse; }
 										DSE->insert(updatedBod);
 										}
 									}
@@ -216,7 +216,7 @@ public:
 		{
 			if (myBod!=bod) { singleInteract(bod, myBod, true); }
 		}
-		else if (octy->getLength() /
+		else if (octy.getLength() /
 				magnitude(myBod->position.x-bod->position.x,
 						  myBod->position.y-bod->position.y,
 						  myBod->position.z-bod->position.z) < MAX_DISTANCE)

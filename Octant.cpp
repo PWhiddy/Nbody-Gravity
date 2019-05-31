@@ -20,65 +20,72 @@ public:
 		length = l;
 	}
 
-	double getLength()
+	Octant(Octant&& o): mid(std::move(o.mid)), length(std::move(o.length))
+	{
+	}
+
+	Octant(const Octant& o): mid(o.mid), length(o.length)
+	{
+	}
+
+	double getLength() const
 	{
 		return length;
 	}
 
-	inline bool contains(vec3 p)
+	inline bool contains(const vec3& p) const
 	{
 		return p.x<=mid.x+length/2.0 && p.x>=mid.x-length/2.0 &&
 			   p.y<=mid.y+length/2.0 && p.y>=mid.y-length/2.0 &&
 			   p.z<=mid.z+length/2.0 && p.z>=mid.z-length/2.0;
 	}
 
-	Octant* mUNW()
+	Octant mUNW() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x-newL, mid.y+newL, mid.z+newL, length/2.0);
+		return Octant(mid.x-newL, mid.y+newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mUNE()
+	Octant mUNE() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x+newL, mid.y+newL, mid.z+newL, length/2.0);
+		return Octant(mid.x+newL, mid.y+newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mUSW()
+	Octant mUSW() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x-newL, mid.y-newL, mid.z+newL, length/2.0);
+		return Octant(mid.x-newL, mid.y-newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mUSE()
+	Octant mUSE() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x+newL, mid.y-newL, mid.z+newL, length/2.0);
+		return Octant(mid.x+newL, mid.y-newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mDNW()
+	Octant mDNW() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x-newL, mid.y+newL, mid.z-newL, length/2.0);
+		return Octant(mid.x-newL, mid.y+newL, mid.z-newL, length/2.0);
 	}
 
-	Octant* mDNE()
+	Octant mDNE() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x+newL, mid.y+newL, mid.z-newL, length/2.0);
+		return Octant(mid.x+newL, mid.y+newL, mid.z-newL, length/2.0);
 	}
 
-	Octant* mDSW()
+	Octant mDSW() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x-newL, mid.y-newL, mid.z-newL, length/2.0);
+		return Octant(mid.x-newL, mid.y-newL, mid.z-newL, length/2.0);
 	}
 
-	Octant* mDSE()
+	Octant mDSE() const
 	{
 		double newL = length/4.0;
-		return new Octant(mid.x+newL, mid.y-newL, mid.z-newL, length/2.0);
+		return Octant(mid.x+newL, mid.y-newL, mid.z-newL, length/2.0);
 	}
-
 };
 

@@ -145,7 +145,7 @@ void interactBodies(struct body* bods)
 	                          0, /// center y
 	                          0.1374, /// center z Does this help?
 	                          60*SYSTEM_SIZE);
-	Bhtree *tree = new Bhtree(proot);
+	Bhtree *tree = new Bhtree(std::move(proot));
 
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{

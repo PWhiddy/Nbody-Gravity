@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <string.h>
 #include <random>
 #include <omp.h>
 #include "Bhtree.cpp"
@@ -14,14 +15,14 @@ void initializeBodies(struct body* bods);
 void runSimulation(struct body* b, char* image, double* hdImage);
 void interactBodies(struct body* b);
 void singleInteraction(struct body* a, struct body* b);
-double magnitude(vec3 v);
+double magnitude(const vec3& v);
 void updateBodies(struct body* b);
 void createFrame(char* image, double* hdImage, struct body* b, int step);
 double toPixelSpace(double p, int size);
 void renderClear(char* image, double* hdImage);
 void renderBodies(struct body* b, double* hdImage);
 void colorDot(double x, double y, double vMag, double* hdImage);
-void colorAt(int x, int y, struct color c, double f, double* hdImage);
+void colorAt(int x, int y, const struct color& c, double f, double* hdImage);
 unsigned char colorDepth(unsigned char x, unsigned char p, double f);
 double clamp(double x);
 void writeRender(char* data, double* hdImage, int step);
@@ -178,7 +179,7 @@ void singleInteraction(struct body* a, struct body* b)
 	b->accel.z += F*posDiff.z/b->mass;
 }
 
-double magnitude(vec3 v)
+double magnitude(const vec3& v)
 {
 	return sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
 }
@@ -233,12 +234,17 @@ void createFrame(char* image, double* hdImage, struct body* b, int step)
 
 void renderClear(char* image, double* hdImage)
 {
+#if 0
 	for (int i=0; i<WIDTH*HEIGHT*3; i++)
 	{
 	//	char* current = image + i;
 		image[i] = 0; //char(image[i]/1.2);
 		hdImage[i] = 0.0;
 	}
+#else
+    memset(image, 0, WIDTH*HEIGHT*3);
+    memset(hdImage, 0, WIDTH*HEIGHT*3*sizeof(double));
+#endif
 }
 
 void renderBodies(struct body* b, double* hdImage)
@@ -267,8 +273,8 @@ double toPixelSpace(double p, int size)
 
 void colorDot(double x, double y, double vMag, double* hdImage)
 {
-	const double velocityMax = MAX_VEL_COLOR; //35000
-	const double velocityMin = sqrt(0.8*(G*(SOLAR_MASS+EXTRA_MASS*SOLAR_MASS))/
+	constexpr double velocityMax = MAX_VEL_COLOR; //35000
+	constexpr double velocityMin = sqrt(0.8*(G*(SOLAR_MASS+EXTRA_MASS*SOLAR_MASS))/
 			(SYSTEM_SIZE*TO_METERS)); //MIN_VEL_COLOR;
 	const double vPortion = sqrt((vMag-velocityMin) / velocityMax);
 	color c;
@@ -293,7 +299,7 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 
 }
 
-void colorAt(int x, int y, struct color c, double f, double* hdImage)
+void colorAt(int x, int y, const struct color& c, double f, double* hdImage)
 {
 	int pix = 3*(x+WIDTH*y);
 	hdImage[pix+0] += c.r*f;//colorDepth(c.r, image[pix+0], f);

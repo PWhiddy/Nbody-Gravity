@@ -295,6 +295,7 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 	c.r = clamp(4*(vPortion-0.333));
 	c.g = clamp(fmin(4*vPortion,4.0*(1.0-vPortion)));
 	c.b = clamp(4*(0.5-vPortion));
+	#pragma omp parallel for
 	for (int i=-DOT_SIZE/2; i<DOT_SIZE/2; i++)
 	{
 		for (int j=-DOT_SIZE/2; j<DOT_SIZE/2; j++)

@@ -122,6 +122,7 @@ void interactBodies(struct body* bods)
 	// Sun interacts individually
 	if (DEBUG_INFO) {std::cout << "\nCalculating Force from star..." << std::flush;}
 	struct body *sun = &bods[0];
+	#pragma omp parallel for
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
 		singleInteraction(sun, &bods[bIndex]);
@@ -188,6 +189,7 @@ void updateBodies(struct body* bods)
 {
 	double mAbove = 0.0;
 	double mBelow = 0.0;
+	#pragma omp for
 	for (int bIndex=0; bIndex<NUM_BODIES; bIndex++)
 	{
 		struct body *current = &bods[bIndex];
@@ -250,6 +252,7 @@ void renderClear(char* image, double* hdImage)
 void renderBodies(struct body* b, double* hdImage)
 {
 	/// ORTHOGONAL PROJECTION
+    #pragma omp parallel
 	for(int index=0; index<NUM_BODIES; index++)
 	{
 		struct body *current = &b[index];
@@ -281,7 +284,7 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 	c.r = clamp(4*(vPortion-0.333));
 	c.g = clamp(fmin(4*vPortion,4.0*(1.0-vPortion)));
 	c.b = clamp(4*(0.5-vPortion));
-	#pragma omp parallel for
+	#pragma omp for
 	for (int i=-DOT_SIZE/2; i<DOT_SIZE/2; i++)
 	{
 		for (int j=-DOT_SIZE/2; j<DOT_SIZE/2; j++)

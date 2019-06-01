@@ -46,6 +46,7 @@ struct vec3
 
 struct body
 {
+    body (): mass(0) { }
 	vec3 position, velocity, accel;
 	double mass;
 };

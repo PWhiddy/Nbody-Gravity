@@ -51,7 +51,7 @@ public:
 		DSE = NULL;
 	}
 #endif
-	
+
 	const Octant& octant () const { return octy; }
 
 	~Bhtree()
@@ -81,7 +81,7 @@ public:
 		} else //if (!isExternal())
 		{
 			bool isExtern = isExternal();
-			body* bodToUpdate;
+			body* updatedBod;
 			if (!isExtern)
 			{
 				myBod.position.x = (insertBod->position.x*insertBod->mass +
@@ -94,55 +94,55 @@ public:
 									   myBod.position.z*myBod.mass) /
 								  (insertBod->mass+myBod.mass);
 				myBod.mass += insertBod->mass;
-				bodToUpdate = insertBod;
+				updatedBod = insertBod;
 			} else {
-				bodToUpdate = &myBod;
+				updatedBod = &myBod;
 			}
 			Octant&& unw = octy.mUNW();
-			if (unw.contains(bodToUpdate->position))
+			if (unw.contains(updatedBod->position))
 			{
 				if (UNW==NULL) { UNW = new Bhtree(std::move(unw)); }
-				UNW->insert(bodToUpdate);
+				UNW->insert(updatedBod);
 			} else {
 				Octant&& une = octy.mUNE();
-				if (une.contains(bodToUpdate->position))
+				if (une.contains(updatedBod->position))
 				{
 					if (UNE==NULL) { UNE = new Bhtree(std::move(une)); }
-					UNE->insert(bodToUpdate);
+					UNE->insert(updatedBod);
 				} else {
 					Octant&& usw = octy.mUSW();
-					if (usw.contains(bodToUpdate->position))
+					if (usw.contains(updatedBod->position))
 					{
 						if (USW==NULL) { USW = new Bhtree(std::move(usw)); }
-						USW->insert(bodToUpdate);
+						USW->insert(updatedBod);
 					} else {
 						Octant&& use = octy.mUSE();
-						if (use.contains(bodToUpdate->position))
+						if (use.contains(updatedBod->position))
 						{
 							if (USE==NULL) { USE = new Bhtree(std::move(use)); }
-							USE->insert(bodToUpdate);
+							USE->insert(updatedBod);
 						} else {
 							Octant&& dnw = octy.mDNW();
-							if (dnw.contains(bodToUpdate->position))
+							if (dnw.contains(updatedBod->position))
 							{
 								if (DNW==NULL) { DNW = new Bhtree(std::move(dnw)); }
-								DNW->insert(bodToUpdate);
+								DNW->insert(updatedBod);
 							} else {
 								Octant&& dne = octy.mDNE();
-								if (dne.contains(bodToUpdate->position))
+								if (dne.contains(updatedBod->position))
 								{
 									if (DNE==NULL) { DNE = new Bhtree(std::move(dne)); }
-									DNE->insert(bodToUpdate);
+									DNE->insert(updatedBod);
 								} else {
 									Octant&& dsw = octy.mDSW();
-									if (dsw.contains(bodToUpdate->position))
+									if (dsw.contains(updatedBod->position))
 									{
 										if (DSW==NULL) { DSW = new Bhtree(std::move(dsw)); }
-										DSW->insert(bodToUpdate);
+										DSW->insert(updatedBod);
 									} else {
 										Octant&& dse = octy.mDSE();
 										if (DSE==NULL) { DSE = new Bhtree(std::move(dse)); }
-										DSE->insert(bodToUpdate);
+										DSE->insert(updatedBod);
 										}
 									}
 								}

@@ -3,8 +3,6 @@
 // Author      : Peter Whidden
 //============================================================================
 
-#include <sys/time.h>
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -101,11 +99,6 @@ void initializeBodies(struct body* bods)
 			  << "\n______________________________\n";
 }
 
-void printDuration (const timeval& start, const timeval& stop)
-{
-    std::cout << '(' << (stop.tv_sec - start.tv_sec) + ((stop.tv_usec - start.tv_usec) / 1000000.0) << "sec)";
-}
-
 void runSimulation(struct body* b, char* image, double* hdImage)
 {
 	createFrame(image, hdImage, b, 1);
@@ -125,20 +118,15 @@ void runSimulation(struct body* b, char* image, double* hdImage)
 
 void interactBodies(struct body* bods)
 {
-    timeval tstart, tstop;
-
 	// Sun interacts individually
 	if (DEBUG_INFO) {std::cout << "\nCalculating Force from star..." << std::flush;}
-	if (DEBUG_INFO) gettimeofday(&tstart, nullptr);
 	struct body *sun = &bods[0];
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
 		singleInteraction(sun, &bods[bIndex]);
 	}
 
-	if (DEBUG_INFO) {gettimeofday(&tstop, nullptr); printDuration(tstart, tstop);}
-	if (DEBUG_INFO) {std::cout << "\nBuilding Octreex..." << std::flush;}
-	if (DEBUG_INFO) gettimeofday(&tstart, nullptr);
+	if (DEBUG_INFO) {std::cout << "\nBuilding Octree..." << std::flush;}
 
 	// Build tree
 	Octant&& proot = Octant(0, /// center x
@@ -155,9 +143,7 @@ void interactBodies(struct body* bods)
 		}
 	}
 
-	if (DEBUG_INFO) {gettimeofday(&tstop, nullptr); printDuration(tstart, tstop);}
 	if (DEBUG_INFO) {std::cout << "\nCalculating particle interactions..." << std::flush;}
-	if (DEBUG_INFO) gettimeofday(&tstart, nullptr);
 
 	// loop through interactions
 	#pragma omp parallel for
@@ -169,15 +155,10 @@ void interactBodies(struct body* bods)
 		}
 	}
 	// Destroy tree
-	if (DEBUG_INFO) {gettimeofday(&tstop, nullptr); printDuration(tstart, tstop);}
-	if (DEBUG_INFO) gettimeofday(&tstart, nullptr);
 	delete tree;
-	if (DEBUG_INFO) {gettimeofday(&tstop, nullptr); printDuration(tstart, tstop);}
 	//
 	if (DEBUG_INFO) {std::cout << "\nUpdating particle positions..." << std::flush;}
-	if (DEBUG_INFO) gettimeofday(&tstart, nullptr);
 	updateBodies(bods);
-	if (DEBUG_INFO) {gettimeofday(&tstop, nullptr); printDuration(tstart, tstop);}
 }
 
 void singleInteraction(struct body* a, struct body* b)
@@ -246,7 +227,6 @@ void createFrame(char* image, double* hdImage, struct body* b, int step)
 	renderClear(image, hdImage);
 	if (DEBUG_INFO) {std::cout << "\nRendering Particles..." << std::flush;}
 	renderBodies(b, hdImage);
-	
 	if (DEBUG_INFO) {std::cout << "\nWriting frame to file..." << std::flush;}
 	writeRender(image, hdImage, step);
 }

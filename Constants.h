@@ -33,7 +33,7 @@
 #define PARTICLE_SHARPNESS 1.0 // Probably leave this alone
 #define DOT_SIZE 8 // 15  // Range of pixels to render
 #define TIME_STEP (3*32*1024) //(1*128*1024) Simulated time between integration steps, in seconds
-#define STEP_COUNT 10//16000 // Will automatically stop running after this many steps
+#define STEP_COUNT 16000 // Will automatically stop running after this many steps
 #define RENDER_INTERVAL 1 // How many timesteps to simulate in between each frame rendered
 #define DEBUG_INFO true // Print lots of info to the console
 

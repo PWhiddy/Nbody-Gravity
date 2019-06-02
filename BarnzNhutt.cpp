@@ -134,9 +134,9 @@ void interactBodies(struct body* bods)
 
 	// Build tree
 	Octant&& proot = Octant(0, /// center x
-	                          0, /// center y
-	                          0.1374, /// center z Does this help?
-	                          60*SYSTEM_SIZE);
+							  0, /// center y
+							  0.1374, /// center z Does this help?
+							  60*SYSTEM_SIZE);
 	Bhtree *tree = new Bhtree(std::move(proot));
 
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
@@ -238,23 +238,14 @@ void createFrame(char* image, double* hdImage, struct body* b, int step)
 
 void renderClear(char* image, double* hdImage)
 {
-#if 0
-	for (int i=0; i<WIDTH*HEIGHT*3; i++)
-	{
-	//	char* current = image + i;
-		image[i] = 0; //char(image[i]/1.2);
-		hdImage[i] = 0.0;
-	}
-#else
-    memset(image, 0, WIDTH*HEIGHT*3);
-    memset(hdImage, 0, WIDTH*HEIGHT*3*sizeof(double));
-#endif
+	memset(image, 0, WIDTH*HEIGHT*3);
+	memset(hdImage, 0, WIDTH*HEIGHT*3*sizeof(double));
 }
 
 void renderBodies(struct body* b, double* hdImage)
 {
 	/// ORTHOGONAL PROJECTION
-    #pragma omp parallel
+	#pragma omp parallel
 	for(int index=0; index<NUM_BODIES; index++)
 	{
 		struct body *current = &b[index];
@@ -298,7 +289,7 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 			double cFactor = PARTICLE_BRIGHTNESS /
 					(pow(exp(pow(PARTICLE_SHARPNESS*
 					(xP+i-toPixelSpace(x, WIDTH)),2.0))
-				       + exp(pow(PARTICLE_SHARPNESS*
+					   + exp(pow(PARTICLE_SHARPNESS*
 					(yP+j-toPixelSpace(y, HEIGHT)),2.0)),/*1.25*/0.75)+1.0);
 			colorAt(int(xP+i),int(yP+j),c, cFactor, hdImage);
 		}

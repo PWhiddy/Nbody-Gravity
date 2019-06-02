@@ -281,6 +281,8 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 	constexpr double velocityMax = MAX_VEL_COLOR; //35000
 	constexpr double velocityMin = sqrt(0.8*(G*(SOLAR_MASS+EXTRA_MASS*SOLAR_MASS))/
 			(SYSTEM_SIZE*TO_METERS)); //MIN_VEL_COLOR;
+	if (vMag < velocityMin)
+		return;
 	const double vPortion = sqrt((vMag-velocityMin) / velocityMax);
 	color c;
 	c.r = clamp(4*(vPortion-0.333));

@@ -3,6 +3,7 @@
 // Author      : Peter Whidden
 //============================================================================
 
+#include <fenv.h>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -29,6 +30,7 @@ void writeRender(char* data, double* hdImage, int step);
 
 int main()
 {
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	std::cout << SYSTEM_THICKNESS << "AU thick disk\n";;
 	char *image = new char[WIDTH*HEIGHT*3];
 	double *hdImage = new double[WIDTH*HEIGHT*3];

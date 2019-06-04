@@ -30,7 +30,11 @@ void writeRender(char* data, double* hdImage, int step);
 
 int main()
 {
-    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#ifdef FE_NOMASK_ENV
+	if (DEBUG_INFO)
+		// enable all hardware floating point exceptions for debugging
+		feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#endif
 	std::cout << SYSTEM_THICKNESS << "AU thick disk\n";;
 	char *image = new char[WIDTH*HEIGHT*3];
 	double *hdImage = new double[WIDTH*HEIGHT*3];

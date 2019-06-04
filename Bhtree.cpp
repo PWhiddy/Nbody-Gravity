@@ -174,8 +174,12 @@ public:
 		posDiff.z = (target->position.z-other->position.z)*TO_METERS;
 		double dist = magnitude(&posDiff);
 
-if (dist > 0)
-{
+		// this test can be true only when singlePart is true
+		// (is always false when singlePart is false = when target is not external)
+		if (dist == 0)
+			// avoid division by 0
+			return;
+
 		double F = TIME_STEP*(G*target->mass*other->mass) / ((dist*dist + SOFTENING*SOFTENING) * dist);
 
 		target->accel.x -= F*posDiff.x/target->mass;
@@ -199,7 +203,6 @@ if (dist > 0)
     #else
         (void)singlePart;
 	#endif		
-}
 
 	}
 
@@ -207,7 +210,11 @@ if (dist > 0)
 	{
 		if (isExternal())
 		{
-			if (bod != &myBod) { singleInteract(bod, &myBod, true); }
+			// this test is always true due to body not being allocated anymore
+			// (even if they are the same. dist==0 test is now done in singleInteract()
+			// further algorithm optimization left to the original author :)
+			//if (bod != &myBod)
+				singleInteract(bod, &myBod, true);
 		}
 		else if (octy.getLength() /
 				magnitude(myBod.position.x-bod->position.x,

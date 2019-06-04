@@ -85,7 +85,7 @@ public:
 			if (!isExtern)
 			{
 				myBod.position.x = (insertBod->position.x*insertBod->mass +
-								       myBod.position.x*myBod.mass) /
+									   myBod.position.x*myBod.mass) /
 								  (insertBod->mass+myBod.mass);
 				myBod.position.y = (insertBod->position.y*insertBod->mass +
 									   myBod.position.y*myBod.mass) /
@@ -200,8 +200,8 @@ public:
 				target->accel.z += friction*(other->velocity.z-target->velocity.z)/2;
 			}
 		}
-    #else
-        (void)singlePart;
+	#else
+		(void)singlePart;
 	#endif		
 
 	}

@@ -3,9 +3,11 @@
 // Author      : Peter Whidden
 //============================================================================
 
+#include <fenv.h>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <string.h>
 #include <random>
 #include <omp.h>
 #include "Bhtree.cpp"
@@ -14,20 +16,25 @@ void initializeBodies(struct body* bods);
 void runSimulation(struct body* b, char* image, double* hdImage);
 void interactBodies(struct body* b);
 void singleInteraction(struct body* a, struct body* b);
-double magnitude(vec3 v);
+double magnitude(const vec3& v);
 void updateBodies(struct body* b);
 void createFrame(char* image, double* hdImage, struct body* b, int step);
 double toPixelSpace(double p, int size);
 void renderClear(char* image, double* hdImage);
 void renderBodies(struct body* b, double* hdImage);
 void colorDot(double x, double y, double vMag, double* hdImage);
-void colorAt(int x, int y, struct color c, double f, double* hdImage);
+void colorAt(int x, int y, const struct color& c, double f, double* hdImage);
 unsigned char colorDepth(unsigned char x, unsigned char p, double f);
 double clamp(double x);
 void writeRender(char* data, double* hdImage, int step);
 
 int main()
 {
+#ifdef FE_NOMASK_ENV
+	if (DEBUG_INFO)
+		// enable all hardware floating point exceptions for debugging
+		feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#endif
 	std::cout << SYSTEM_THICKNESS << "AU thick disk\n";;
 	char *image = new char[WIDTH*HEIGHT*3];
 	double *hdImage = new double[WIDTH*HEIGHT*3];
@@ -121,6 +128,7 @@ void interactBodies(struct body* bods)
 	// Sun interacts individually
 	if (DEBUG_INFO) {std::cout << "\nCalculating Force from star..." << std::flush;}
 	struct body *sun = &bods[0];
+	#pragma omp parallel for
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
 		singleInteraction(sun, &bods[bIndex]);
@@ -129,16 +137,15 @@ void interactBodies(struct body* bods)
 	if (DEBUG_INFO) {std::cout << "\nBuilding Octree..." << std::flush;}
 
 	// Build tree
-	vec3 *center = new struct vec3;
-	center->x = 0;
-	center->y = 0;
-	center->z = 0.1374; /// Does this help?
-	Octant *root = new Octant(center, 60*SYSTEM_SIZE);
-	Bhtree *tree = new Bhtree(root);
+	Octant&& proot = Octant(0, /// center x
+							  0, /// center y
+							  0.1374, /// center z Does this help?
+							  60*SYSTEM_SIZE);
+	Bhtree *tree = new Bhtree(std::move(proot));
 
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
-		if (root->contains(bods[bIndex].position))
+		if (tree->octant().contains(bods[bIndex].position))
 		{
 			tree->insert(&bods[bIndex]);
 		}
@@ -150,12 +157,11 @@ void interactBodies(struct body* bods)
 	#pragma omp parallel for
 	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
 	{
-		if (root->contains(bods[bIndex].position))
+		if (tree->octant().contains(bods[bIndex].position))
 		{
 			tree->interactInTree(&bods[bIndex]);
 		}
 	}
-
 	// Destroy tree
 	delete tree;
 	//
@@ -180,7 +186,7 @@ void singleInteraction(struct body* a, struct body* b)
 	b->accel.z += F*posDiff.z/b->mass;
 }
 
-double magnitude(vec3 v)
+double magnitude(const vec3& v)
 {
 	return sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
 }
@@ -189,6 +195,7 @@ void updateBodies(struct body* bods)
 {
 	double mAbove = 0.0;
 	double mBelow = 0.0;
+	#pragma omp for
 	for (int bIndex=0; bIndex<NUM_BODIES; bIndex++)
 	{
 		struct body *current = &bods[bIndex];
@@ -235,12 +242,8 @@ void createFrame(char* image, double* hdImage, struct body* b, int step)
 
 void renderClear(char* image, double* hdImage)
 {
-	for (int i=0; i<WIDTH*HEIGHT*3; i++)
-	{
-	//	char* current = image + i;
-		image[i] = 0; //char(image[i]/1.2);
-		hdImage[i] = 0.0;
-	}
+	memset(image, 0, WIDTH*HEIGHT*3);
+	memset(hdImage, 0, WIDTH*HEIGHT*3*sizeof(double));
 }
 
 void renderBodies(struct body* b, double* hdImage)
@@ -269,9 +272,11 @@ double toPixelSpace(double p, int size)
 
 void colorDot(double x, double y, double vMag, double* hdImage)
 {
-	const double velocityMax = MAX_VEL_COLOR; //35000
-	const double velocityMin = sqrt(0.8*(G*(SOLAR_MASS+EXTRA_MASS*SOLAR_MASS))/
+	constexpr double velocityMax = MAX_VEL_COLOR; //35000
+	constexpr double velocityMin = sqrt(0.8*(G*(SOLAR_MASS+EXTRA_MASS*SOLAR_MASS))/
 			(SYSTEM_SIZE*TO_METERS)); //MIN_VEL_COLOR;
+	if (vMag < velocityMin)
+		return;
 	const double vPortion = sqrt((vMag-velocityMin) / velocityMax);
 	color c;
 	c.r = clamp(4*(vPortion-0.333));
@@ -286,7 +291,7 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 			double cFactor = PARTICLE_BRIGHTNESS /
 					(pow(exp(pow(PARTICLE_SHARPNESS*
 					(xP+i-toPixelSpace(x, WIDTH)),2.0))
-				       + exp(pow(PARTICLE_SHARPNESS*
+					   + exp(pow(PARTICLE_SHARPNESS*
 					(yP+j-toPixelSpace(y, HEIGHT)),2.0)),/*1.25*/0.75)+1.0);
 			colorAt(int(xP+i),int(yP+j),c, cFactor, hdImage);
 		}
@@ -294,7 +299,7 @@ void colorDot(double x, double y, double vMag, double* hdImage)
 
 }
 
-void colorAt(int x, int y, struct color c, double f, double* hdImage)
+void colorAt(int x, int y, const struct color& c, double f, double* hdImage)
 {
 	int pix = 3*(x+WIDTH*y);
 	hdImage[pix+0] += c.r*f;//colorDepth(c.r, image[pix+0], f);
@@ -323,16 +328,8 @@ void writeRender(char* data, double* hdImage, int step)
 	}
 
 	int frame = step/RENDER_INTERVAL + 1;//RENDER_INTERVAL;
-	std::string name = "images/Step"; 
-	int i = 0;
-	if (frame == 1000) i++; // Evil hack to avoid extra 0 at 1000
-	for (i; i<4-floor(log(frame)/log(10)); i++)
-	{
-		name.append("0");
-	}
-	name.append(std::to_string(frame));
-	name.append(".ppm");
-
+	char name[128];
+	sprintf(name, "images/Step%05i.ppm", frame);
 	std::ofstream file (name, std::ofstream::binary);
 
 	if (file.is_open())

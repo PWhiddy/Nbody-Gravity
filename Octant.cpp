@@ -10,111 +10,82 @@
 class Octant
 {
 private:
-	vec3 *mid;
+	vec3 mid;
 	double length;
+
 public:
-	Octant(vec3* m, double l)
+
+	Octant(double x, double y, double z, double l): mid(x, y, z)
 	{
-		mid = m;
 		length = l;
 	}
 
-	~Octant()
+	Octant(Octant&& o): mid(std::move(o.mid)), length(std::move(o.length))
 	{
-		delete mid;
 	}
 
-	double getLength()
+	Octant(const Octant& o): mid(o.mid), length(o.length)
+	{
+	}
+
+	double getLength() const
 	{
 		return length;
 	}
 
-	inline bool contains(vec3 p)
+	inline bool contains(const vec3& p) const
 	{
-		return p.x<=mid->x+length/2.0 && p.x>=mid->x-length/2.0 &&
-			   p.y<=mid->y+length/2.0 && p.y>=mid->y-length/2.0 &&
-			   p.z<=mid->z+length/2.0 && p.z>=mid->z-length/2.0;
+		return p.x<=mid.x+length/2.0 && p.x>=mid.x-length/2.0 &&
+			   p.y<=mid.y+length/2.0 && p.y>=mid.y-length/2.0 &&
+			   p.z<=mid.z+length/2.0 && p.z>=mid.z-length/2.0;
 	}
 
-	Octant* mUNW()
+	Octant mUNW() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x-newL;
-		newMid->y = mid->y+newL;
-		newMid->z = mid->z+newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x-newL, mid.y+newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mUNE()
+	Octant mUNE() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x+newL;
-		newMid->y = mid->y+newL;
-		newMid->z = mid->z+newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x+newL, mid.y+newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mUSW()
+	Octant mUSW() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x-newL;
-		newMid->y = mid->y-newL;
-		newMid->z = mid->z+newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x-newL, mid.y-newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mUSE()
+	Octant mUSE() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x+newL;
-		newMid->y = mid->y-newL;
-		newMid->z = mid->z+newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x+newL, mid.y-newL, mid.z+newL, length/2.0);
 	}
 
-	Octant* mDNW()
+	Octant mDNW() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x-newL;
-		newMid->y = mid->y+newL;
-		newMid->z = mid->z-newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x-newL, mid.y+newL, mid.z-newL, length/2.0);
 	}
 
-	Octant* mDNE()
+	Octant mDNE() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x+newL;
-		newMid->y = mid->y+newL;
-		newMid->z = mid->z-newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x+newL, mid.y+newL, mid.z-newL, length/2.0);
 	}
 
-	Octant* mDSW()
+	Octant mDSW() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x-newL;
-		newMid->y = mid->y-newL;
-		newMid->z = mid->z-newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x-newL, mid.y-newL, mid.z-newL, length/2.0);
 	}
 
-	Octant* mDSE()
+	Octant mDSE() const
 	{
-		vec3 *newMid = new struct vec3;
 		double newL = length/4.0;
-		newMid->x = mid->x+newL;
-		newMid->y = mid->y-newL;
-		newMid->z = mid->z-newL;
-		return new Octant(newMid, length/2.0);
+		return Octant(mid.x+newL, mid.y-newL, mid.z-newL, length/2.0);
 	}
-
 };
 

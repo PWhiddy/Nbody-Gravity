@@ -39,11 +39,14 @@
 
 struct vec3
 {
+	vec3 () {}
+	vec3 (double x, double y, double z): x(x), y(y), z(z) {}
 	double x, y, z;
 };
 
 struct body
 {
+	body (): mass(0) { }
 	vec3 position, velocity, accel;
 	double mass;
 };

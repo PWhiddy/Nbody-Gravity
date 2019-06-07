@@ -35,6 +35,7 @@
 #define TIME_STEP (3*32*1024) //(1*128*1024) Simulated time between integration steps, in seconds
 #define STEP_COUNT 16000 // Will automatically stop running after this many steps
 #define RENDER_INTERVAL 1 // How many timesteps to simulate in between each frame rendered
+//#define PARALLEL_RENDER // Renders faster, but can have inaccuracies (especially when many particles occupy a small space)
 #define DEBUG_INFO true // Print lots of info to the console
 
 struct vec3

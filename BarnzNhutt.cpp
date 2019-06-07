@@ -249,6 +249,9 @@ void renderClear(char* image, double* hdImage)
 void renderBodies(struct body* b, double* hdImage)
 {
 	/// ORTHOGONAL PROJECTION
+#ifdef PARALLEL_RENDER
+        #pragma omp parallel for
+#endif
 	for(int index=0; index<NUM_BODIES; index++)
 	{
 		struct body *current = &b[index];

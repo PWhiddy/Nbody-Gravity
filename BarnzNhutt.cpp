@@ -68,25 +68,28 @@ body* initializeBodiesSmooth()
     const double spacing = 0.012;
     double cRad = INNER_BOUND;
     double ang = 0.0;
+    long idx = 1;
     while (cRad < SYSTEM_SIZE) {
         body cur;
+        allBods.push_back(cur);
         double velocity = pow(((G*(SOLAR_MASS+((cRad-INNER_BOUND)/SYSTEM_SIZE)*EXTRA_MASS*SOLAR_MASS))
 					  	  	  	  	  / (cRad*TO_METERS)), 0.5);
-        cur.position.x = cRad*cos(ang);
-        cur.position.y = cRad*sin(ang);
-        cur.position.z = 0.0;
-        cur.velocity.x = velocity*sin(ang);
-        cur.velocity.y = -velocity*cos(ang);
-        cur.velocity.z = 0.0;
-        cur.mass = (EXTRA_MASS*SOLAR_MASS)/NUM_BODIES;
+        allBods[idx].position.x = cRad*cos(ang);
+        allBods[idx].position.y = cRad*sin(ang);
+        allBods[idx].position.z = 0.0;
+        allBods[idx].velocity.x = velocity*sin(ang);
+        allBods[idx].velocity.y = -velocity*cos(ang);
+        allBods[idx].velocity.z = 0.0;
+        allBods[idx].mass = (EXTRA_MASS*SOLAR_MASS)/NUM_BODIES;
 		//totalExtraMass += (EXTRA_MASS*SOLAR_MASS)/NUM_BODIES;
-        allBods.push_back(cur);
+       
         float spSize = (2.0*PI*cRad)/floor(2.0*PI*cRad/spacing);
         if (ang > 2.0*PI-0.0001) {
             cRad += spacing;
             ang = 0.0;
         }
         ang += spSize/cRad;
+        idx++;
     }   
     std::cout << "\n Expected body count: " << NUM_BODIES;
     std::cout << "\n Actual body count: " << allBods.size() << "\n";
@@ -301,7 +304,9 @@ void renderBodies(struct body* b, double* hdImage)
 	for(int index=0; index<bodCount; index++)
 	{
 		struct body *current = &b[index];
-
+        if (index == 6) {
+            std::cout << "\nbody index 6 x: " << current->position.x << " y: " << current->position.y << "\n" << std::flush;
+        }
 		int x = toPixelSpace(current->position.x, WIDTH);
 		int y = toPixelSpace(current->position.y, HEIGHT);
 

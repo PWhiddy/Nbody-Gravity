@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <random>
+#include <vector>
 #include <omp.h>
 #include "Bhtree.cpp"
 
@@ -27,25 +28,70 @@ void colorAt(int x, int y, const struct color& c, double f, double* hdImage);
 unsigned char colorDepth(unsigned char x, unsigned char p, double f);
 double clamp(double x);
 void writeRender(char* data, double* hdImage, int step);
+body* initializeBodiesSmooth();
+
+long bodCount;
+std::vector<body> allBods;
 
 int main()
 {
 #ifdef FE_NOMASK_ENV
 	if (DEBUG_INFO)
 		// enable all hardware floating point exceptions for debugging
-		feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	//	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 #endif
 	std::cout << SYSTEM_THICKNESS << "AU thick disk\n";;
 	char *image = new char[WIDTH*HEIGHT*3];
 	double *hdImage = new double[WIDTH*HEIGHT*3];
-	struct body *bodies = new struct body[NUM_BODIES];
+	struct body *bodies = initializeBodiesSmooth(); //new struct body[NUM_BODIES];
 
-	initializeBodies(bodies);
+	//initializeBodies(bodies);
 	runSimulation(bodies, image, hdImage);
 	std::cout << "\nwe made it\n";
 	delete[] bodies;
 	delete[] image;
 	return 0;
+}
+
+body* initializeBodiesSmooth()
+{    
+
+    body star;
+    star.position.x = 0.0;///-BINARY_SEPARATION;
+	star.position.y = 0.0;
+	star.position.z = 0.0;
+	star.velocity.x = 0.0;
+	star.velocity.y = 0.0;//velocity;
+	star.velocity.z = 0.0;
+	star.mass = SOLAR_MASS;
+    allBods.push_back(star);
+    const double spacing = 0.012;
+    double cRad = INNER_BOUND;
+    double ang = 0.0;
+    while (cRad < SYSTEM_SIZE) {
+        body cur;
+        double velocity = pow(((G*(SOLAR_MASS+((cRad-INNER_BOUND)/SYSTEM_SIZE)*EXTRA_MASS*SOLAR_MASS))
+					  	  	  	  	  / (cRad*TO_METERS)), 0.5);
+        cur.position.x = cRad*cos(ang);
+        cur.position.y = cRad*sin(ang);
+        cur.position.z = 0.0;
+        cur.velocity.x = velocity*sin(ang);
+        cur.velocity.y = -velocity*cos(ang);
+        cur.velocity.z = 0.0;
+        cur.mass = (EXTRA_MASS*SOLAR_MASS)/NUM_BODIES;
+		//totalExtraMass += (EXTRA_MASS*SOLAR_MASS)/NUM_BODIES;
+        allBods.push_back(cur);
+        float spSize = (2.0*PI*cRad)/floor(2.0*PI*cRad/spacing);
+        if (ang > 2.0*PI-0.0001) {
+            cRad += spacing;
+            ang = 0.0;
+        }
+        ang += spSize/cRad;
+    }   
+    std::cout << "\n Expected body count: " << NUM_BODIES;
+    std::cout << "\n Actual body count: " << allBods.size() << "\n";
+    bodCount = allBods.size();
+    return allBods.data();
 }
 
 void initializeBodies(struct body* bods)
@@ -129,7 +175,7 @@ void interactBodies(struct body* bods)
 	if (DEBUG_INFO) {std::cout << "\nCalculating Force from star..." << std::flush;}
 	struct body *sun = &bods[0];
 	#pragma omp parallel for
-	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
+	for (int bIndex=1; bIndex<bodCount; bIndex++)
 	{
 		singleInteraction(sun, &bods[bIndex]);
 	}
@@ -143,7 +189,7 @@ void interactBodies(struct body* bods)
 							  60*SYSTEM_SIZE);
 	Bhtree *tree = new Bhtree(std::move(proot));
 
-	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
+	for (int bIndex=1; bIndex<bodCount; bIndex++)
 	{
 		if (tree->octant().contains(bods[bIndex].position))
 		{
@@ -155,7 +201,7 @@ void interactBodies(struct body* bods)
 
 	// loop through interactions
 	#pragma omp parallel for
-	for (int bIndex=1; bIndex<NUM_BODIES; bIndex++)
+	for (int bIndex=1; bIndex<bodCount; bIndex++)
 	{
 		if (tree->octant().contains(bods[bIndex].position))
 		{
@@ -196,7 +242,7 @@ void updateBodies(struct body* bods)
 	double mAbove = 0.0;
 	double mBelow = 0.0;
 	#pragma omp for
-	for (int bIndex=0; bIndex<NUM_BODIES; bIndex++)
+	for (int bIndex=0; bIndex<bodCount; bIndex++)
 	{
 		struct body *current = &bods[bIndex];
 		if (DEBUG_INFO)
@@ -252,7 +298,7 @@ void renderBodies(struct body* b, double* hdImage)
 #ifdef PARALLEL_RENDER
         #pragma omp parallel for
 #endif
-	for(int index=0; index<NUM_BODIES; index++)
+	for(int index=0; index<bodCount; index++)
 	{
 		struct body *current = &b[index];
 
